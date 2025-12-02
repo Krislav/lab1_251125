@@ -1,4 +1,4 @@
-#include "Interface.h"
+#include "Interface.hpp"
 
 int main(){
     Menu();
