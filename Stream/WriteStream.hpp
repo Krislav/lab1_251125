@@ -3,7 +3,7 @@
 #include <string>
 #include "..\Errors\Errors.hpp"
 
-class ReadStream {
+class WriteStream {
 private:
     std::string file_name;
     FILE* file;
@@ -15,11 +15,11 @@ private:
     int buffer_pos;
     int buffer_capacity;
 
-    void BufferRefill();
+    void WriteBuffer();
     
 public:
-    ReadStream(const std::string& f_name = "");
-    ~ReadStream();
+    WriteStream(const std::string& f_name = "");
+    ~WriteStream();
 
     void Open();
     void Close();
@@ -31,5 +31,5 @@ public:
     long GetPos() const;
     std::string GetFileName() const;
 
-    char ReadChar();
+    void WriteChar(char data);
 };

@@ -1,32 +1,33 @@
-#include "ReadStream.hpp"
+#include "WriteStream.hpp"
 
 
-void ReadStream::BufferRefill() {
-    if (!file) return;
-    buffer_capacity = fread(buffer, sizeof(char), BUFFER_SIZE, file);
-    buffer_pos = 0;
+void WriteStream::WriteBuffer() {
+    if (buffer_pos > 0 && file) {
+        int symb = fwrite(buffer, sizeof(char), buffer_pos, file);
+        if (symb != buffer_pos) throw ErrorCode::WRITE_FAILED;
+        buffer_pos = 0;
+    }
 }
 
-ReadStream::ReadStream(const std::string& f_name = ""):
+WriteStream::WriteStream(const std::string& f_name = ""):
 file_name(f_name), file(nullptr), is_open(false),stream_pos(0), buffer_pos(0), buffer_capacity(0) {}
 
-ReadStream::~ReadStream(){
-    Close();
+WriteStream::~WriteStream() {
+    Close;
 }
 
-void ReadStream::Open() {
+void WriteStream::Open() {
     if (is_open) return;
     if (file_name.empty()) throw ErrorCode::EMPTY_NAME;
 
-    file = fopen(file_name.c_str(), "rb");
+    file = fopen(file_name.c_str(), "wb");
     if (!file) throw ErrorCode::COULDNT_OPEN_FILE;
 
     is_open = true; 
     stream_pos = 0;
-    BufferRefill();
 }
 
-void ReadStream::Close() {
+void WriteStream::Close() {
     if (is_open && file) {
         fclose(file);
         file = nullptr;
@@ -36,7 +37,7 @@ void ReadStream::Close() {
     }
 }
 
-int ReadStream::Seek(int i) {
+int WriteStream::Seek(int i) {
     if (!is_open || !file) throw ErrorCode::FILE_ISNT_OPENED;
     if (i > GetSize() || i < 0) throw ErrorCode::INDEX_OUT_OF_RANGE;
     
@@ -44,15 +45,14 @@ int ReadStream::Seek(int i) {
     if (res != 0) throw ErrorCode::SEEK_FAIL;
 
     stream_pos = i;
-    BufferRefill();
     return stream_pos;
 }
 
-bool ReadStream::IsOpen() const{
+bool WriteStream::IsOpen() const{
     return is_open;
 }
 
-bool ReadStream::IsEnd() const{
+bool WriteStream::IsEnd() const{
     if (!is_open || !file) {
         return true;
     }
@@ -69,7 +69,7 @@ bool ReadStream::IsEnd() const{
     }
 }
 
-long ReadStream::GetSize() const{
+long WriteStream::GetSize() const{
     if (!is_open || !file) return 0;
     
     fseek(file, 0, SEEK_END);
@@ -78,24 +78,19 @@ long ReadStream::GetSize() const{
     return size;
 }
 
-long ReadStream::GetPos() const{
+long WriteStream::GetPos() const{
     return stream_pos;
 }
 
-std::string ReadStream::GetFileName() const{
+std::string WriteStream::GetFileName() const{
     return file_name;
 }
 
-char ReadStream::ReadChar() {
-    if (!is_open || !file) throw ErrorCode::FILE_ISNT_OPENED;
+void WriteStream::WriteChar(char data) {
+    if (!is_open || !file) throw ErrorCode::COULDNT_OPEN_FILE;
     
-    if (buffer_pos >= buffer_capacity) {
-        BufferRefill();
-        if (buffer_capacity == 0) throw ErrorCode::INDEX_OUT_OF_RANGE;
-    }
-    
-    char ch = buffer[buffer_pos];
+    buffer[buffer_pos] = data;
     buffer_pos++;
+    WriteBuffer();
     stream_pos++;
-    return ch;
 }
