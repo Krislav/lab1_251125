@@ -9,11 +9,11 @@ void WriteStream::WriteBuffer() {
     }
 }
 
-WriteStream::WriteStream(const std::string& f_name = ""):
+WriteStream::WriteStream(const std::string& f_name):
 file_name(f_name), file(nullptr), is_open(false),stream_pos(0), buffer_pos(0), buffer_capacity(0) {}
 
 WriteStream::~WriteStream() {
-    Close;
+    Close();
 }
 
 void WriteStream::Open() {

@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <vector>
 #include "..\Errors\Errors.hpp"
 
 class ReadStream {
@@ -32,4 +33,5 @@ public:
     std::string GetFileName() const;
 
     char ReadChar();
+    int FindStr(const std::string& str);
 };

@@ -7,7 +7,7 @@ void ReadStream::BufferRefill() {
     buffer_pos = 0;
 }
 
-ReadStream::ReadStream(const std::string& f_name = ""):
+ReadStream::ReadStream(const std::string& f_name):
 file_name(f_name), file(nullptr), is_open(false),stream_pos(0), buffer_pos(0), buffer_capacity(0) {}
 
 ReadStream::~ReadStream(){
@@ -98,4 +98,61 @@ char ReadStream::ReadChar() {
     buffer_pos++;
     stream_pos++;
     return ch;
+}
+
+bool VectorCheck(std::vector<char>& symbols, char ch) {
+    for (int i = 0; i < symbols.size(); i++){
+        if (symbols[i] == ch) return i;
+    }
+    return symbols.size();
+}
+
+void MakeStopList(std::vector<int>& shift, std::vector<char>& symbols, const std::string& str) {// Создание стоп-листа
+    int l = str.length();
+    shift.clear();
+    symbols.clear();
+    shift.push_back(l);
+    shift.push_back(l);
+    symbols.push_back('*');
+    symbols.push_back(str[l-1]);
+
+    for (int i = l-2; i >= 0; i--) {
+        if (VectorCheck(symbols, str[i]) != symbols.size()) {
+            shift.push_back(l-i-1);
+            symbols.push_back(str[i]);
+        }
+    }
+
+    return;
+}
+
+int ReadStream::FindStr(const std::string& str){
+    long size = GetSize();
+    int l = str.length();
+    int count = 0;
+    if (l > size) return 0;
+    std::vector<int> shift;
+    std::vector<char> symbols;
+    MakeStopList(shift, symbols, str);
+    std::string original;
+    for (int i = 0; i < l; i++) {
+        original += ReadChar();
+    }
+
+    
+    int i = l-1;
+    while (i < size) {
+        for (int j = l-1; j >= 0; j--) {
+            if (original[j] != str[j]) {
+                for (int h = 0; h < shift[VectorCheck(symbols, original[j])] - (l-1 - j); i++){
+                    original.erase(0, 1);
+                    original += ReadChar();
+                }
+                break;
+            }
+            if (j == 0) count++;
+        }
+    }
+
+    return count;
 }
