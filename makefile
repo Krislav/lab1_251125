@@ -5,12 +5,16 @@ SRCS = main.cpp \
        Interface.cpp \
        Stream/WriteStream.cpp \
        Stream/ReadStream.cpp \
-       Errors/Errors.cpp
+       Errors/Errors.cpp \
+	   Tests/Tests.cpp \
+	   Tests/TestShell.cpp
 
 HEADERS = Stream/WriteStream.hpp \
           Stream/ReadStream.hpp \
           Errors/Errors.hpp \
-          Interface.hpp 
+          Interface.hpp \
+		  Tests/Tests.hpp \
+		  Tests/TestShell.hpp
 
 OBJS = $(SRCS:.cpp=.o)
 

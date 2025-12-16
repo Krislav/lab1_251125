@@ -94,3 +94,11 @@ void WriteStream::WriteChar(char data) {
     WriteBuffer();
     stream_pos++;
 }
+
+void WriteStream::WriteStr(std::string str){
+    if (!is_open || !file) throw ErrorCode::COULDNT_OPEN_FILE;
+    
+    for (int i = 0; i < str.size(); i++) {
+        WriteChar(str[i]);
+    }
+}

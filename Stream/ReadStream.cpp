@@ -100,11 +100,11 @@ char ReadStream::ReadChar() {
     return ch;
 }
 
-bool VectorCheck(std::vector<char>& symbols, char ch) {
-    for (int i = 0; i < symbols.size(); i++){
+int VectorCheck(std::vector<char>& symbols, char ch) {
+    for (unsigned int i = 0; i < symbols.size(); i++){
         if (symbols[i] == ch) return i;
     }
-    return symbols.size();
+    return -1;
 }
 
 void MakeStopList(std::vector<int>& shift, std::vector<char>& symbols, const std::string& str) {// Создание стоп-листа
@@ -112,15 +112,18 @@ void MakeStopList(std::vector<int>& shift, std::vector<char>& symbols, const std
     shift.clear();
     symbols.clear();
     shift.push_back(l);
-    shift.push_back(l);
     symbols.push_back('*');
-    symbols.push_back(str[l-1]);
+    
 
     for (int i = l-2; i >= 0; i--) {
-        if (VectorCheck(symbols, str[i]) != symbols.size()) {
+        if (VectorCheck(symbols, str[i]) == -1) {
             shift.push_back(l-i-1);
             symbols.push_back(str[i]);
         }
+    }
+    if (VectorCheck(symbols, str[l-1]) == -1) {
+        symbols.push_back(str[l-1]);
+        shift.push_back(l);
     }
 
     return;
@@ -142,15 +145,32 @@ int ReadStream::FindStr(const std::string& str){
     
     int i = l-1;
     while (i < size) {
+        bool is_dif = false;
         for (int j = l-1; j >= 0; j--) {
-            if (original[j] != str[j]) {
-                for (int h = 0; h < shift[VectorCheck(symbols, original[j])] - (l-1 - j); i++){
-                    original.erase(0, 1);
-                    original += ReadChar();
+            if (original[j] != str[j] && is_dif == false) {
+                is_dif = true;
+                if (VectorCheck(symbols, original[j]) != -1 && shift[VectorCheck(symbols, original[j])] - (l-1 - j) > 0) {
+                    int hh = shift[VectorCheck(symbols, original[j])] - (l-1 - j);
+                    for (int h = 0; h < hh; h++){
+                        original.erase(0, 1);
+                        original += ReadChar();
+                        i++;
+                    }
                 }
-                break;
+                else {
+                    for (int h = 0; h < l - (l-1 - j); h++){
+                        original.erase(0, 1);
+                        original += ReadChar();
+                        i++;
+                    }
+                }
             }
-            if (j == 0) count++;
+        }
+        if (!is_dif) {
+            count++;
+            original.erase(0, 1);
+            original += ReadChar();
+            i++;
         }
     }
 

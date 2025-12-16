@@ -9,7 +9,8 @@ void Menu() {
         std::cout << "\n=== Main Menu ==="
                   << "\n1. Enter file name"
                   << "\n2. Stream operations"
-                  << "\n3. Exit"
+                  << "\n3. Run Test"
+                  << "\n4. Exit"
                   << "\nSelect: ";
         
         int choice;
@@ -18,7 +19,8 @@ void Menu() {
         switch (choice) {
             case 1: FileNameAdd(); break;
             case 2: StreamOperations(); break;
-            case 3: return;
+            case 3: TestAll(); break;
+            case 4: return;
             default: std::cout << "Invalid choice!\n";
         }
     }
@@ -63,7 +65,7 @@ void StreamOperations() {
                 std::cout << "\nStream closed";
                 break;
             case 4:
-                if (read_stream->IsOpen() && write_stream->IsOpen()) std::cout << "\nStream isn't opened";
+                if (!read_stream->IsOpen() && write_stream->IsOpen()) {std::cout << "\nStream isn't opened"; break;}
 
                 int i;
                 std::cout << "\nEnter seek index: ";
@@ -73,12 +75,12 @@ void StreamOperations() {
                 std::cout << "\nSeek completed successfuly";
                 break;
             case 5:
-                if (read_stream->IsOpen()) std::cout << "\nStream isn't opened";
+                if (!read_stream->IsOpen()) {std::cout << "\nStream isn't opened"; break;}
 
-                std::cout << "Readed char:" << read_stream->ReadChar();
+                std::cout << "\nReaded char:" << read_stream->ReadChar();
                 break;
             case 6:
-                if (write_stream->IsOpen()) std::cout << "\nStream isn't opened";
+                if (!write_stream->IsOpen()) {std::cout << "\nStream isn't opened"; break;}
                 
                 char ch;
                 std::cout << "\nEnter char: ";
@@ -89,7 +91,11 @@ void StreamOperations() {
                 if (read_stream != nullptr) {delete read_stream; read_stream = nullptr;}
                 if (write_stream != nullptr) {delete write_stream; write_stream = nullptr;}
                 break;
-            case 8: return;
+            case 8: 
+                read_stream->Close();
+                write_stream->Close();
+                std::cout << "\nStream closed";
+                return;
             default: std::cout << "Invalid choice!\n";
         }
         } catch(ErrorCode error) {ErrorsOutput(error);}

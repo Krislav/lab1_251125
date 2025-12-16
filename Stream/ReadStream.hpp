@@ -11,7 +11,7 @@ private:
     bool is_open;
     int stream_pos;
 
-    static const int BUFFER_SIZE = 500;
+    static const int BUFFER_SIZE = 10;
     char buffer[BUFFER_SIZE];
     int buffer_pos;
     int buffer_capacity;
