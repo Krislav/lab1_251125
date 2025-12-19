@@ -42,9 +42,11 @@ void StreamOperations() {
                   << "\n3. Close stream"
                   << "\n4. Seek"
                   << "\n5. Read char"
-                  << "\n6. Write char"
-                  << "\n7. Delete Stream"
-                  << "\n8. Exit"
+                  << "\n6. Read Text"
+                  << "\n7. Write char"
+                  << "\n8. Write String"
+                  << "\n9. Delete Stream"
+                  << "\n10. Exit"
                   << "\nSelect: ";
         
         int choice;
@@ -77,9 +79,14 @@ void StreamOperations() {
             case 5:
                 if (!read_stream->IsOpen()) {std::cout << "\nStream isn't opened"; break;}
 
-                std::cout << "\nReaded char:" << read_stream->ReadChar();
+                std::cout << "\nReaded char:" << read_stream->ReadCharFromBuffer();
                 break;
-            case 6:
+            case 6: 
+                if (!read_stream->IsOpen()) {std::cout << "\nStream isn't opened"; break;}
+
+                std::cout << "\nReaded Text:" << read_stream->ReadCharFromBuffer();
+                break;
+            case 7:
                 if (!write_stream->IsOpen()) {std::cout << "\nStream isn't opened"; break;}
                 
                 char ch;
@@ -87,11 +94,19 @@ void StreamOperations() {
                 std::cin >> ch;
                 write_stream->WriteChar(ch);
                 break;
-            case 7:
+            case 8: {
+                if (!write_stream->IsOpen()) {std::cout << "\nStream isn't opened"; break;}
+                
+                std::string str_in;
+                std::cout << "\nEnter str: ";
+                std::cin >> str_in;
+                write_stream->WriteStr(str_in);
+                break;}
+            case 9:
                 if (read_stream != nullptr) {delete read_stream; read_stream = nullptr;}
                 if (write_stream != nullptr) {delete write_stream; write_stream = nullptr;}
                 break;
-            case 8: 
+            case 10: 
                 read_stream->Close();
                 write_stream->Close();
                 std::cout << "\nStream closed";

@@ -10,7 +10,7 @@ void WriteStream::WriteBuffer() {
 }
 
 WriteStream::WriteStream(const std::string& f_name):
-file_name(f_name), file(nullptr), is_open(false),stream_pos(0), buffer_pos(0), buffer_capacity(0) {}
+file_name(f_name), file(nullptr), is_open(false),stream_pos(0), buffer_pos(0), number_of_characters_read(0) {}
 
 WriteStream::~WriteStream() {
     Close();
@@ -33,7 +33,7 @@ void WriteStream::Close() {
         file = nullptr;
         is_open = false;
         stream_pos = 0;
-        buffer_pos = buffer_capacity = 0;
+        buffer_pos = number_of_characters_read = 0;
     }
 }
 
@@ -56,7 +56,7 @@ bool WriteStream::IsEnd() const{
     if (!is_open || !file) {
         return true;
     }
-    if (buffer_pos < buffer_capacity) {
+    if (buffer_pos < number_of_characters_read) {
         return false;
     }
 
@@ -72,9 +72,10 @@ bool WriteStream::IsEnd() const{
 long WriteStream::GetSize() const{
     if (!is_open || !file) return 0;
     
+    int current_pos = ftell(file);
     fseek(file, 0, SEEK_END);
-    long size = ftell(file);
-    fseek(file, 0, stream_pos);
+    int size = ftell(file);
+    fseek(file, current_pos, SEEK_SET);
     return size;
 }
 

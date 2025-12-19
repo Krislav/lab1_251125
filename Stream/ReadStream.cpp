@@ -1,14 +1,14 @@
 #include "ReadStream.hpp"
 
 
-void ReadStream::BufferRefill() {
+void ReadStream::BufferRead() {
     if (!file) return;
-    buffer_capacity = fread(buffer, sizeof(char), BUFFER_SIZE, file);
+    number_of_characters_read = fread(buffer, sizeof(char), BUFFER_SIZE, file);
     buffer_pos = 0;
 }
 
 ReadStream::ReadStream(const std::string& f_name):
-file_name(f_name), file(nullptr), is_open(false),stream_pos(0), buffer_pos(0), buffer_capacity(0) {}
+file_name(f_name), file(nullptr), is_open(false),stream_pos(0), buffer_pos(0), number_of_characters_read(0) {}
 
 ReadStream::~ReadStream(){
     Close();
@@ -23,7 +23,7 @@ void ReadStream::Open() {
 
     is_open = true; 
     stream_pos = 0;
-    BufferRefill();
+    BufferRead();
 }
 
 void ReadStream::Close() {
@@ -32,7 +32,7 @@ void ReadStream::Close() {
         file = nullptr;
         is_open = false;
         stream_pos = 0;
-        buffer_pos = buffer_capacity = 0;
+        buffer_pos = number_of_characters_read = 0;
     }
 }
 
@@ -44,7 +44,7 @@ int ReadStream::Seek(int i) {
     if (res != 0) throw ErrorCode::SEEK_FAIL;
 
     stream_pos = i;
-    BufferRefill();
+    BufferRead();
     return stream_pos;
 }
 
@@ -56,7 +56,7 @@ bool ReadStream::IsEnd() const{
     if (!is_open || !file) {
         return true;
     }
-    if (buffer_pos < buffer_capacity) {
+    if (buffer_pos < number_of_characters_read) {
         return false;
     }
 
@@ -72,9 +72,10 @@ bool ReadStream::IsEnd() const{
 long ReadStream::GetSize() const{
     if (!is_open || !file) return 0;
     
+    int current_pos = ftell(file);
     fseek(file, 0, SEEK_END);
-    long size = ftell(file);
-    fseek(file, 0, stream_pos);
+    int size = ftell(file);
+    fseek(file, current_pos, SEEK_SET);
     return size;
 }
 
@@ -86,12 +87,12 @@ std::string ReadStream::GetFileName() const{
     return file_name;
 }
 
-char ReadStream::ReadChar() {
+char ReadStream::ReadCharFromBuffer() {
     if (!is_open || !file) throw ErrorCode::FILE_ISNT_OPENED;
     
-    if (buffer_pos >= buffer_capacity) {
-        BufferRefill();
-        if (buffer_capacity == 0) throw ErrorCode::INDEX_OUT_OF_RANGE;
+    if (buffer_pos >= number_of_characters_read) {
+        BufferRead();
+        if (number_of_characters_read == 0) throw ErrorCode::INDEX_OUT_OF_RANGE;
     }
     
     char ch = buffer[buffer_pos];
@@ -100,79 +101,64 @@ char ReadStream::ReadChar() {
     return ch;
 }
 
-int VectorCheck(std::vector<char>& symbols, char ch) {
-    for (unsigned int i = 0; i < symbols.size(); i++){
-        if (symbols[i] == ch) return i;
-    }
-    return -1;
-}
+std::string ReadStream::ReadTextFromBuffer(){
+    if (!is_open || !file) throw ErrorCode::FILE_ISNT_OPENED;
 
-void MakeStopList(std::vector<int>& shift, std::vector<char>& symbols, const std::string& str) {// Создание стоп-листа
-    int l = str.length();
-    shift.clear();
-    symbols.clear();
-    shift.push_back(l);
-    symbols.push_back('*');
-    
-
-    for (int i = l-2; i >= 0; i--) {
-        if (VectorCheck(symbols, str[i]) == -1) {
-            shift.push_back(l-i-1);
-            symbols.push_back(str[i]);
+    std::string text;
+    try {
+        while(!IsEnd()) {
+            text += ReadCharFromBuffer();
         }
+    } catch (const ErrorCode ex) {
+    if (ex != ErrorCode::INDEX_OUT_OF_RANGE) throw;
     }
-    if (VectorCheck(symbols, str[l-1]) == -1) {
-        symbols.push_back(str[l-1]);
-        shift.push_back(l);
-    }
-
-    return;
+            
+    return text;
 }
 
-int ReadStream::FindStr(const std::string& str){
+int ReadStream::FindStr(const std::string& pattern){
+    if (!is_open || !file) throw ErrorCode::FILE_ISNT_OPENED;
     long size = GetSize();
-    int l = str.length();
+    int l = pattern.length();
     int count = 0;
     if (l > size) return 0;
     std::vector<int> shift;
     std::vector<char> symbols;
-    MakeStopList(shift, symbols, str);
-    std::string original;
-    for (int i = 0; i < l; i++) {
-        original += ReadChar();
+    MakeStopList(shift, symbols, pattern);
+    std::string substr = "";
+    for (int z = 0; z < l; z++) {
+        substr += ReadCharFromBuffer();
     }
 
-    
-    int i = l-1;
-    while (i < size) {
+    try{
+    while (stream_pos <= size) {
         bool is_dif = false;
         for (int j = l-1; j >= 0; j--) {
-            if (original[j] != str[j] && is_dif == false) {
+            if (substr[j] != pattern[j] && !is_dif) {
                 is_dif = true;
-                if (VectorCheck(symbols, original[j]) != -1 && shift[VectorCheck(symbols, original[j])] - (l-1 - j) > 0) {
-                    int hh = shift[VectorCheck(symbols, original[j])] - (l-1 - j);
-                    for (int h = 0; h < hh; h++){
-                        original.erase(0, 1);
-                        original += ReadChar();
-                        i++;
-                    }
+                std::cout << substr << " error\n";
+                if (VectorCheck(symbols, substr[l-1]) != -1) {
+                    int hh = shift[VectorCheck(symbols, substr[l-1])];
+                    substr = substr.substr(hh, l-hh);
+                    for (int h = 0; h < hh; h++) substr += ReadCharFromBuffer();
                 }
                 else {
-                    for (int h = 0; h < l - (l-1 - j); h++){
-                        original.erase(0, 1);
-                        original += ReadChar();
-                        i++;
-                    }
+                    substr.clear();
+                    for (int h = 0; h < l; h++) substr += ReadCharFromBuffer();
                 }
             }
         }
         if (!is_dif) {
             count++;
-            original.erase(0, 1);
-            original += ReadChar();
-            i++;
+            int hh = shift[VectorCheck(symbols, substr[l-1])];
+            if (l-hh == 0) substr = substr.substr(hh, l-hh);
+            else substr = "";
+            for (int h = 0; h < hh; h++) substr += ReadCharFromBuffer();
         }
     }
+    } catch(ErrorCode ex) {
+        if (ex != ErrorCode::INDEX_OUT_OF_RANGE) throw;
+    }   
 
     return count;
 }

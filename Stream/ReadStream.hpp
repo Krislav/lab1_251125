@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "FindSupport.hpp"
 #include "..\Errors\Errors.hpp"
 
 class ReadStream {
@@ -10,15 +11,14 @@ private:
     FILE* file;
     bool is_open;
     int stream_pos;
-
-    static const int BUFFER_SIZE = 10;
-    char buffer[BUFFER_SIZE];
-    int buffer_pos;
-    int buffer_capacity;
-
-    void BufferRefill();
     
 public:
+    static const int BUFFER_SIZE = 5;
+    char buffer[BUFFER_SIZE];
+    int buffer_pos;
+    int number_of_characters_read;
+    void BufferRead();
+
     ReadStream(const std::string& f_name = "");
     ~ReadStream();
 
@@ -32,6 +32,7 @@ public:
     long GetPos() const;
     std::string GetFileName() const;
 
-    char ReadChar();
-    int FindStr(const std::string& str);
+    char ReadCharFromBuffer();
+    std::string ReadTextFromBuffer();
+    int FindStr(const std::string& pattern);
 };

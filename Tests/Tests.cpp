@@ -45,7 +45,7 @@ void TestReadStream() { // GROUP 1 Test Read stream
     result_of_test = 1; //TEST 1.4 Проверка чтения символа
     rs1_2.Open();
     try {
-        char a = rs1_2.ReadChar();
+        char a = rs1_2.ReadCharFromBuffer();
         if (a == '1') result_of_test = 0;
     }
     catch(ErrorCode ex) {
@@ -57,7 +57,7 @@ void TestReadStream() { // GROUP 1 Test Read stream
     result_of_test = 1; //TEST 1.5 Проверка seek
     try {
         rs1_2.Seek(4);
-        char a = rs1_2.ReadChar();
+        char a = rs1_2.ReadCharFromBuffer();
         if (a == '5') result_of_test = 0;
     }
     catch(ErrorCode ex) {
@@ -72,7 +72,7 @@ void TestReadStream() { // GROUP 1 Test Read stream
     try {
         std::string str17 = "";
         for (int i = 0; i < 18; i++) {
-            str17 += rs1_2.ReadChar();
+            str17 += rs1_2.ReadCharFromBuffer();
         }
         if (str17 == "12345abcde12345abc") result_of_test = 0;
         else std::cout << str17 << "\n";
@@ -130,10 +130,10 @@ void TestReadStream() { // GROUP 1 Test Read stream
     result_of_test = 1; //TEST 1.11 Проверка поиска подстроки
     ReadStream rs1_12("TestFileFind.txt");
     rs1_12.Open();
-    std::string sub = "aba";
+    std::string sub = "123";
     try {
         int c = rs1_12.FindStr(sub);
-        if (c == 2) result_of_test = 0;
+        if (c == 6) result_of_test = 0;
     }
     catch(ErrorCode ex) {
         result_of_test = 2; 
@@ -251,4 +251,5 @@ void TestWriteStream() { // GROUP 2 Test Write stream
 void TestAll(){
     TestReadStream();
     TestWriteStream();
+    CompareReadFromBuffer();
 }

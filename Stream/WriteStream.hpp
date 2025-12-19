@@ -10,14 +10,14 @@ private:
     bool is_open;
     int stream_pos;
 
-    static const int BUFFER_SIZE = 10;
-    char buffer[BUFFER_SIZE];
-    int buffer_pos;
-    int buffer_capacity;
-
     void WriteBuffer();
     
 public:
+    static const int BUFFER_SIZE = 10;
+    char buffer[BUFFER_SIZE];
+    int buffer_pos;
+    int number_of_characters_read;
+
     WriteStream(const std::string& f_name = "");
     ~WriteStream();
 

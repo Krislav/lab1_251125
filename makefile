@@ -5,14 +5,18 @@ SRCS = main.cpp \
        Interface.cpp \
        Stream/WriteStream.cpp \
        Stream/ReadStream.cpp \
+	   Stream/FindSupport.cpp \
        Errors/Errors.cpp \
+	   TimeTest/TimeTest.cpp \
 	   Tests/Tests.cpp \
-	   Tests/TestShell.cpp
+	   Tests/TestShell.cpp 
 
-HEADERS = Stream/WriteStream.hpp \
+HEADERS = Interface.hpp \
+		  Stream/WriteStream.hpp \
           Stream/ReadStream.hpp \
+		  Stream/FindSupport.hpp \
           Errors/Errors.hpp \
-          Interface.hpp \
+		  TimeTest/TimeTest.hpp \
 		  Tests/Tests.hpp \
 		  Tests/TestShell.hpp
 
